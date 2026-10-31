@@ -1,6 +1,8 @@
+diff --git a/osfmk/kern/debug.c b/osfmk/kern/debug.c
+index e9daeed..ca1ee38 100644
 --- a/osfmk/kern/debug.c
 +++ b/osfmk/kern/debug.c
-@@ -1126,6 +1126,9 @@
+@@ -1126,6 +1126,9 @@ panic_with_thread_context(unsigned int reason, void *ctx, uint64_t debugger_opti
  }
  #endif /* defined (__x86_64__) */
  
@@ -10,10 +12,10 @@
  #pragma clang diagnostic push
  #pragma clang diagnostic ignored "-Wmissing-noreturn"
  void
-@@ -1164,6 +1167,17 @@
- 
+@@ -1165,6 +1168,17 @@ panic_trap_to_debugger(const char *panic_format_str, va_list *panic_args, unsign
  	/* Turn off I/O tracing once we've panicked */
  	iotrace_disable();
+ 
 +	/* Only reached when the payload leaves this funnel alone: the panic screen
 +	 * redirects it and stages the text itself. Stage the title for the next boot. */
 +	{
@@ -25,13 +27,16 @@
 +		uke_panic_flush(uke_panic_text);
 +	}
 +
- 
  	/* call machine-layer panic handler */
  	ml_panic_trap_to_debugger(panic_format_str, panic_args, reason, ctx, panic_options_mask, panic_caller);
+ 
 diff --git a/pexpert/arm/pe_init.c b/pexpert/arm/pe_init.c
+index 433b6cd..387790e 100644
 --- a/pexpert/arm/pe_init.c
 +++ b/pexpert/arm/pe_init.c
-@@ -188,3 +188,8 @@
+@@ -164,6 +164,11 @@ check_for_panic_log(void)
+ #endif /* DEVELOPMENT && defined(XNU_TARGET_OS_BRIDGE) */
+ 
  #endif
 +	/* A panic-time staging block (UkeLastLog's UKE_PANIC_SAVE_MAGIC) is consumed
 +	 * by the log writer: keep it instead of clearing the pram. */
@@ -39,3 +44,5 @@ diff --git a/pexpert/arm/pe_init.c b/pexpert/arm/pe_init.c
 +		return;
 +	}
  	panic_info = (struct embedded_panic_header *)gPanicBase;
+ 
+ 	/* Check if a shared memory console is running in the panic buffer */
