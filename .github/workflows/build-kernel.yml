@@ -148,19 +148,19 @@ jobs:
           test -n "$BOOTSTRAP_KERNEL" && test -f "$BOOTSTRAP_KERNEL"
           TARGET_DIR="out/uke/ipados-17.7.11-21H461/uke"
           ./unixnu defconfig uke_defconfig -D ../UniXNU-uke
-          for tree in "$TARGET_DIR/tree" "out/uke/tree"; do
-            mkdir -p "$tree/build/native-prelink"
-            cp "$BOOTSTRAP_KERNEL" "$tree/build/native-prelink/native-owner-mobile-graphics-candidate.macho"
-            cp "$BOOTSTRAP_JSON"   "$tree/build/native-prelink/native-owner-mobile-graphics-candidate.json"
-            cp "$BOOTSTRAP_KERNEL" "$tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.macho"
-            cp "$BOOTSTRAP_JSON"   "$tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.json"
-          done
+          ./unixnu tree -D ../UniXNU-uke
+          mkdir -p "$TARGET_DIR/tree/build/native-prelink"
+          cp "$BOOTSTRAP_KERNEL" "$TARGET_DIR/tree/build/native-prelink/native-owner-mobile-graphics-candidate.macho"
+          cp "$BOOTSTRAP_JSON"   "$TARGET_DIR/tree/build/native-prelink/native-owner-mobile-graphics-candidate.json"
+          cp "$BOOTSTRAP_KERNEL" "$TARGET_DIR/tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.macho"
+          cp "$BOOTSTRAP_JSON"   "$TARGET_DIR/tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.json"
+          rm -rf out/uke/tree out/uke/kernel out/uke/logs
           mkdir -p "$TARGET_DIR/kernel" "$TARGET_DIR/logs"
-          mkdir -p out/uke
           ln -sfn "${TARGET_DIR#out/uke/}/tree" out/uke/tree
           ln -sfn "${TARGET_DIR#out/uke/}/kernel" out/uke/kernel
           ln -sfn "${TARGET_DIR#out/uke/}/logs" out/uke/logs
           rm -f "$BOOTSTRAP_KERNEL" "$BOOTSTRAP_JSON"
+          ls -la out/uke/tree/scripts/gen-touch-firmware.py
           ls -l "$TARGET_DIR/tree/build/native-prelink/"
 
       - name: Build the first-console archives
@@ -315,19 +315,19 @@ jobs:
           TARGET_DEFCONFIG="${{ github.event.inputs.defconfig || 'uke-full_defconfig' }}"
           TARGET_DIR="out/uke/ipados-17.7.11-21H461/${TARGET_DEFCONFIG%_defconfig}"
           ./unixnu defconfig "$TARGET_DEFCONFIG" -D ../UniXNU-uke
-          for tree in "$TARGET_DIR/tree" "out/uke/tree"; do
-            mkdir -p "$tree/build/native-prelink"
-            cp "$BOOTSTRAP_KERNEL" "$tree/build/native-prelink/native-owner-mobile-graphics-candidate.macho"
-            cp "$BOOTSTRAP_JSON"   "$tree/build/native-prelink/native-owner-mobile-graphics-candidate.json"
-            cp "$BOOTSTRAP_KERNEL" "$tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.macho"
-            cp "$BOOTSTRAP_JSON"   "$tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.json"
-          done
+          ./unixnu tree -D ../UniXNU-uke
+          mkdir -p "$TARGET_DIR/tree/build/native-prelink"
+          cp "$BOOTSTRAP_KERNEL" "$TARGET_DIR/tree/build/native-prelink/native-owner-mobile-graphics-candidate.macho"
+          cp "$BOOTSTRAP_JSON"   "$TARGET_DIR/tree/build/native-prelink/native-owner-mobile-graphics-candidate.json"
+          cp "$BOOTSTRAP_KERNEL" "$TARGET_DIR/tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.macho"
+          cp "$BOOTSTRAP_JSON"   "$TARGET_DIR/tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.json"
+          rm -rf out/uke/tree out/uke/kernel out/uke/logs
           mkdir -p "$TARGET_DIR/kernel" "$TARGET_DIR/logs"
-          mkdir -p out/uke
           ln -sfn "${TARGET_DIR#out/uke/}/tree" out/uke/tree
           ln -sfn "${TARGET_DIR#out/uke/}/kernel" out/uke/kernel
           ln -sfn "${TARGET_DIR#out/uke/}/logs" out/uke/logs
           rm -f "$BOOTSTRAP_KERNEL" "$BOOTSTRAP_JSON"
+          ls -la out/uke/tree/scripts/gen-touch-firmware.py
           ls -l "$TARGET_DIR/tree/build/native-prelink/"
 
       - name: Seed the display ABI observation cache
