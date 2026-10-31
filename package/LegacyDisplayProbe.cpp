@@ -408,7 +408,8 @@ static IOReturn wrappedExternal(IOUserClient *client,uint32_t selector,IOExterna
     if(stat && selector==12) {
         if(selector<kSelectors){++stat->selector_calls[selector];stat->selector_status[selector]=(uint32_t)kIOReturnSuccess;}
         ++stat->calls;
-        if(traced)printf("UKEMEM: sel %u exit 0 (suppressed)\n",(unsigned)selector);
+        uint64_t arg0=(args && args->scalarInput && args->scalarInputCount>0)?args->scalarInput[0]:0;
+        printf("UKEMEM: sel 12 power change call=%u arg=%llu (suppressed)\n",stat->selector_calls[12],(unsigned long long)arg0);
         return kIOReturnSuccess;
     }
     if(stat && selector==5 && stat->selector_calls[5]<2) {
