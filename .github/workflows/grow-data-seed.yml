@@ -38,9 +38,10 @@ jobs:
           cp UniXNU-uke/data/seed.json UniXNU/build/owner-data-fixture/seed.json
           ls -lh UniXNU/build/owner-data-fixture
 
-      - name: Patch grow script
+      - name: Patch scripts
         run: |
           python3 UniXNU-uke/scripts/patch-seed-data-grow.py UniXNU/scripts/seed-data-grow.py
+          python3 UniXNU-uke/scripts/patch-seed-data-skip-setup.py UniXNU/scripts/seed-data-skip-setup.py
 
       - name: Grow the seed
         working-directory: UniXNU
@@ -52,12 +53,23 @@ jobs:
             | tee build/owner-data-fixture/grown.json
           ls -lh build/owner-data-fixture
 
+      - name: Apply Skip Setup
+        working-directory: UniXNU
+        run: |
+          GIB="${{ github.event.inputs.gib }}"
+          python3 scripts/seed-data-skip-setup.py --no-auto-dim \
+            build/owner-data-fixture/owner-data-$GIB.dbr \
+            build/owner-data-fixture/owner-data-$GIB-skip.dbr
+          ls -lh build/owner-data-fixture
+
       - name: Upload the grown seed
         uses: actions/upload-artifact@v4
         with:
           name: uke-data-seed-${{ github.event.inputs.gib }}
           path: |
             UniXNU/build/owner-data-fixture/owner-data-${{ github.event.inputs.gib }}.dbr
+            UniXNU/build/owner-data-fixture/owner-data-${{ github.event.inputs.gib }}-skip.dbr
+            UniXNU/build/owner-data-fixture/owner-data-${{ github.event.inputs.gib }}-skip.json
             UniXNU/build/owner-data-fixture/grown.json
             UniXNU/build/owner-data-fixture/seed.json
           if-no-files-found: error
