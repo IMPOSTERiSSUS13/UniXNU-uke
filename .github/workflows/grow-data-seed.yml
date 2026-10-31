@@ -38,6 +38,10 @@ jobs:
           cp UniXNU-uke/data/seed.json UniXNU/build/owner-data-fixture/seed.json
           ls -lh UniXNU/build/owner-data-fixture
 
+      - name: Patch grow script
+        run: |
+          python3 UniXNU-uke/scripts/patch-seed-data-grow.py UniXNU/scripts/seed-data-grow.py
+
       - name: Grow the seed
         working-directory: UniXNU
         run: |
