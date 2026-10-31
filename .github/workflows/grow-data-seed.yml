@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Allenwdk/UniXNU
-          ref: uke
+          ref: uke-gpu
           path: UniXNU
           submodules: recursive
 
@@ -41,7 +41,7 @@ jobs:
       - name: Patch scripts
         run: |
           python3 UniXNU-uke/scripts/patch-seed-data-grow.py UniXNU/scripts/seed-data-grow.py
-          python3 UniXNU-uke/scripts/patch-seed-data-skip-setup.py UniXNU/scripts/seed-data-skip-setup.py
+          cp UniXNU-uke/scripts/seed-data-skip-setup.py UniXNU/scripts/seed-data-skip-setup.py
 
       - name: Grow the seed
         working-directory: UniXNU
