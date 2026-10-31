@@ -143,21 +143,25 @@ jobs:
         run: |
           ./unixnu defconfig bootstrap_defconfig -D ../UniXNU-uke
           ./unixnu build kernel -D ../UniXNU-uke
-          test -f out/uke/kernel/kernel.macho
-          test -f out/uke/kernel/kernel.json
-          mkdir -p out/uke/tree/build/native-prelink
-          cp out/uke/kernel/kernel.macho \
-             out/uke/tree/build/native-prelink/native-owner-mobile-graphics-candidate.macho
-          cp out/uke/kernel/kernel.json \
-             out/uke/tree/build/native-prelink/native-owner-mobile-graphics-candidate.json
-          cp out/uke/kernel/kernel.macho \
-             out/uke/tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.macho
-          cp out/uke/kernel/kernel.json \
-             out/uke/tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.json
-          # Do not leave the bootstrap kernel where the result step would
-          # upload it as the shipping kernel.
-          rm -f out/uke/kernel/kernel.macho out/uke/kernel/kernel.json
-          ls -l out/uke/tree/build/native-prelink/
+          BOOTSTRAP_KERNEL=$(find out/uke -name 'kernel.macho' -print -quit)
+          BOOTSTRAP_JSON=$(find out/uke -name 'kernel.json' -print -quit)
+          test -n "$BOOTSTRAP_KERNEL" && test -f "$BOOTSTRAP_KERNEL"
+          TARGET_DIR="out/uke/ipados-17.7.11-21H461/uke"
+          ./unixnu defconfig uke_defconfig -D ../UniXNU-uke
+          for tree in "$TARGET_DIR/tree" "out/uke/tree"; do
+            mkdir -p "$tree/build/native-prelink"
+            cp "$BOOTSTRAP_KERNEL" "$tree/build/native-prelink/native-owner-mobile-graphics-candidate.macho"
+            cp "$BOOTSTRAP_JSON"   "$tree/build/native-prelink/native-owner-mobile-graphics-candidate.json"
+            cp "$BOOTSTRAP_KERNEL" "$tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.macho"
+            cp "$BOOTSTRAP_JSON"   "$tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.json"
+          done
+          mkdir -p "$TARGET_DIR/kernel" "$TARGET_DIR/logs"
+          mkdir -p out/uke
+          ln -sfn "${TARGET_DIR#out/uke/}/tree" out/uke/tree
+          ln -sfn "${TARGET_DIR#out/uke/}/kernel" out/uke/kernel
+          ln -sfn "${TARGET_DIR#out/uke/}/logs" out/uke/logs
+          rm -f "$BOOTSTRAP_KERNEL" "$BOOTSTRAP_JSON"
+          ls -l "$TARGET_DIR/tree/build/native-prelink/"
 
       - name: Build the first-console archives
         working-directory: UniXNU
@@ -194,15 +198,19 @@ jobs:
         if: always()
         run: |
           mkdir -p ../artifacts
-          if [ -f out/uke/kernel/kernel.macho ]; then
-            cp out/uke/kernel/kernel.macho ../artifacts/
-            cp out/uke/kernel/kernel.json ../artifacts/ 2>/dev/null || true
-            shasum -a 256 out/uke/kernel/kernel.macho | tee ../artifacts/kernel.macho.sha256
+          FINAL_KERNEL=$(find out/uke -path '*/uke/kernel/kernel.macho' -print -quit)
+          if [ -z "$FINAL_KERNEL" ]; then
+            FINAL_KERNEL=$(find out/uke -name 'kernel.macho' -print -quit)
+          fi
+          if [ -n "$FINAL_KERNEL" ] && [ -f "$FINAL_KERNEL" ]; then
+            cp "$FINAL_KERNEL" ../artifacts/kernel.macho
+            cp "${FINAL_KERNEL%.macho}.json" ../artifacts/kernel.json 2>/dev/null || true
+            shasum -a 256 "$FINAL_KERNEL" | tee ../artifacts/kernel.macho.sha256
           else
             echo "kernel.macho was not produced" | tee ../artifacts/MISSING.txt
           fi
-          cp -r out/uke/logs ../artifacts/logs 2>/dev/null || true
-          ls -l ../artifacts
+          cp -r out/uke/*/logs ../artifacts/logs 2>/dev/null || cp -r out/uke/logs ../artifacts/logs 2>/dev/null || true
+          ls -la ../artifacts
 
       - name: Upload the kernel
         if: always()
@@ -301,19 +309,26 @@ jobs:
         run: |
           ./unixnu defconfig bootstrap_defconfig -D ../UniXNU-uke
           ./unixnu build kernel -D ../UniXNU-uke
-          test -f out/uke/kernel/kernel.macho
-          test -f out/uke/kernel/kernel.json
-          mkdir -p out/uke/tree/build/native-prelink
-          cp out/uke/kernel/kernel.macho \
-             out/uke/tree/build/native-prelink/native-owner-mobile-graphics-candidate.macho
-          cp out/uke/kernel/kernel.json \
-             out/uke/tree/build/native-prelink/native-owner-mobile-graphics-candidate.json
-          cp out/uke/kernel/kernel.macho \
-             out/uke/tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.macho
-          cp out/uke/kernel/kernel.json \
-             out/uke/tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.json
-          rm -f out/uke/kernel/kernel.macho out/uke/kernel/kernel.json
-          ls -l out/uke/tree/build/native-prelink/
+          BOOTSTRAP_KERNEL=$(find out/uke -name 'kernel.macho' -print -quit)
+          BOOTSTRAP_JSON=$(find out/uke -name 'kernel.json' -print -quit)
+          test -n "$BOOTSTRAP_KERNEL" && test -f "$BOOTSTRAP_KERNEL"
+          TARGET_DEFCONFIG="${{ github.event.inputs.defconfig || 'uke-full_defconfig' }}"
+          TARGET_DIR="out/uke/ipados-17.7.11-21H461/${TARGET_DEFCONFIG%_defconfig}"
+          ./unixnu defconfig "$TARGET_DEFCONFIG" -D ../UniXNU-uke
+          for tree in "$TARGET_DIR/tree" "out/uke/tree"; do
+            mkdir -p "$tree/build/native-prelink"
+            cp "$BOOTSTRAP_KERNEL" "$tree/build/native-prelink/native-owner-mobile-graphics-candidate.macho"
+            cp "$BOOTSTRAP_JSON"   "$tree/build/native-prelink/native-owner-mobile-graphics-candidate.json"
+            cp "$BOOTSTRAP_KERNEL" "$tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.macho"
+            cp "$BOOTSTRAP_JSON"   "$tree/build/native-prelink/native-owner-ufs-cpu-desktop-v9-hid-init-candidate.json"
+          done
+          mkdir -p "$TARGET_DIR/kernel" "$TARGET_DIR/logs"
+          mkdir -p out/uke
+          ln -sfn "${TARGET_DIR#out/uke/}/tree" out/uke/tree
+          ln -sfn "${TARGET_DIR#out/uke/}/kernel" out/uke/kernel
+          ln -sfn "${TARGET_DIR#out/uke/}/logs" out/uke/logs
+          rm -f "$BOOTSTRAP_KERNEL" "$BOOTSTRAP_JSON"
+          ls -l "$TARGET_DIR/tree/build/native-prelink/"
 
       - name: Seed the display ABI observation cache
         working-directory: UniXNU
@@ -369,23 +384,28 @@ jobs:
         if: always()
         run: |
           mkdir -p ../artifacts-full
-          if [ -f out/uke/kernel/kernel.macho ]; then
-            cp out/uke/kernel/kernel.macho ../artifacts-full/
-            cp out/uke/kernel/kernel.json ../artifacts-full/ 2>/dev/null || true
-            shasum -a 256 out/uke/kernel/kernel.macho | tee ../artifacts-full/kernel.macho.sha256
+          FINAL_KERNEL=$(find out/uke -path '*/uke-full/kernel/kernel.macho' -print -quit)
+          if [ -z "$FINAL_KERNEL" ]; then
+            FINAL_KERNEL=$(find out/uke -name 'kernel.macho' -print -quit)
+          fi
+          if [ -n "$FINAL_KERNEL" ] && [ -f "$FINAL_KERNEL" ]; then
+            cp "$FINAL_KERNEL" ../artifacts-full/kernel.macho
+            cp "${FINAL_KERNEL%.macho}.json" ../artifacts-full/kernel.json 2>/dev/null || true
+            shasum -a 256 "$FINAL_KERNEL" | tee ../artifacts-full/kernel.macho.sha256
           else
             echo "kernel.macho was not produced" | tee ../artifacts-full/MISSING.txt
           fi
-          cp -r out/uke/logs ../artifacts-full/logs 2>/dev/null || true
+          cp -r out/uke/*/logs ../artifacts-full/logs 2>/dev/null || cp -r out/uke/logs ../artifacts-full/logs 2>/dev/null || true
           for report in build/native-aes/bindings.json build/storage-abi/headers.json \
                         build/native-ufs/bindings.json build/native-ufs/compile.log \
                         build/native-legacy-display/build-report.json; do
-            if [ -f "out/uke/tree/$report" ]; then
+            rpath=$(find out/uke -path "*/$report" -print -quit)
+            if [ -n "$rpath" ] && [ -f "$rpath" ]; then
               mkdir -p "../artifacts-full/$(dirname "$report")"
-              cp "out/uke/tree/$report" "../artifacts-full/$report"
+              cp "$rpath" "../artifacts-full/$report"
             fi
           done
-          ls -l ../artifacts-full
+          ls -la ../artifacts-full
 
       - name: Upload the full kernel
         if: always()
