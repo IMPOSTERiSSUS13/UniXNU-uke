@@ -1,0 +1,13 @@
+{
+  "volume_uuid": "292E72B9-7594-431D-ADBC-2D354CC918DD",
+  "bytes": 33554432,
+  "sha256": "d92b2443e95bf1b39efc3bb1e5b4d078232f92bb288fbe8f736c55ffba095a98",
+  "source_regular_files": 39,
+  "source_regular_bytes": 611715,
+  "guest_mutable": true,
+  "initial_seed_signature_verified": false,
+  "seed": "Original private/var excluding staged_system_apps; symlinks preserved; runtime directories added",
+  "owner_keybag_created": false,
+  "os_inputs_modified": false,
+  "production_storage_qualified": false
+}
