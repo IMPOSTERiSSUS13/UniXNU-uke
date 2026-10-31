@@ -76,6 +76,13 @@ jobs:
           ref: uke-gpu
           path: UniXNU
 
+      - name: Check out the SM7675 SoC layer
+        uses: actions/checkout@v4
+        with:
+          repository: Allenwdk/UniXNU-sm7675-common
+          ref: 98618c197e789acfd7ac6755ad23bf7e04881780
+          path: UniXNU-sm7675-common
+
       - name: Record the UniXNU revision
         id: base
         working-directory: UniXNU
@@ -225,6 +232,13 @@ jobs:
           repository: Allenwdk/UniXNU
           ref: uke-gpu
           path: UniXNU
+
+      - name: Check out the SM7675 SoC layer
+        uses: actions/checkout@v4
+        with:
+          repository: Allenwdk/UniXNU-sm7675-common
+          ref: 98618c197e789acfd7ac6755ad23bf7e04881780
+          path: UniXNU-sm7675-common
 
       - name: Record the UniXNU revision
         id: base
