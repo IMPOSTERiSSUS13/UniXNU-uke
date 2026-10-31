@@ -17,7 +17,7 @@ and the container directories under /private/var/containers that on a device liv
 build-os-root.py does): a board without input would otherwise turn its display off about 30 seconds after SpringBoard starts
 and put the system to sleep.
 """
-import hashlib, json, os, plistlib, subprocess, sys, tempfile
+import hashlib, json, os, plistlib, subprocess, sys, tempfile, time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -56,56 +56,69 @@ def main():
         mount = Path(td) / 'mount'
         mount.mkdir()
         attached = plistlib.loads(subprocess.check_output(
-            ['hdiutil', 'attach', '-imagekey', 'diskimage-class=CRawDiskImage', '-nobrowse', '-owners', 'off',
-             '-mountpoint', str(mount), '-plist', str(raw)]))
+            ['hdiutil', 'attach', '-imagekey', 'diskimage-class=CRawDiskImage', '-nomount', '-nobrowse', '-owners', 'off',
+             '-plist', str(raw)]))
         print('hdiutil attach entities:', repr(attached.get('system-entities', [])))
         device = attached['system-entities'][0]['dev-entry']
-        actual_mount = mount
+        store = device.split('/')[-1]
+        vol_dev = None
         try:
-            import time
-            if not (actual_mount / 'mobile').is_dir():
-                for ent in attached.get('system-entities', []):
-                    mp = ent.get('mount-point')
-                    if mp and (Path(mp) / 'mobile').is_dir():
-                        actual_mount = Path(mp)
-                        print(f'Found mount at {actual_mount}')
-                        break
-            if not (actual_mount / 'mobile').is_dir():
-                for ent in attached.get('system-entities', []):
-                    dev = ent.get('dev-entry')
-                    if dev:
-                        subprocess.run(['diskutil', 'mount', '-mountPoint', str(mount), dev], check=False)
-                        if (mount / 'mobile').is_dir():
-                            actual_mount = mount
-                            print(f'Mounted {dev} at {mount}')
+            for attempt in range(20):
+                time.sleep(1)
+                try:
+                    listing = plistlib.loads(subprocess.check_output(['diskutil', 'apfs', 'list', '-plist']))
+                    for entry in listing.get('Containers', []):
+                        for s in entry.get('PhysicalStores', []):
+                            dev = s.get('DeviceIdentifier', '')
+                            if dev == store or dev.startswith(store):
+                                for v in entry.get('Volumes', []):
+                                    vol_dev = '/dev/' + v.get('DeviceIdentifier')
+                                    print(f'Found APFS volume {vol_dev} for store {dev} at attempt {attempt+1}')
+                                    break
+                        if vol_dev:
                             break
-            if not (actual_mount / 'mobile').is_dir():
+                    if vol_dev:
+                        break
+                except Exception as e:
+                    print(f'Attempt {attempt+1} listing error: {e}')
+            
+            if not vol_dev:
                 print('--- diskutil list ---')
                 subprocess.run(['diskutil', 'list'])
-                sys.exit(f'The Data seed has no /mobile at {actual_mount}; wrong base image?')
-            merge_pref(actual_mount, 'com.apple.migration', {
+                print('--- diskutil apfs list ---')
+                subprocess.run(['diskutil', 'apfs', 'list'])
+                sys.exit(f'The Data seed has no APFS volume for {device}; wrong base image?')
+
+            print(f'Mounting {vol_dev} to {mount}...')
+            subprocess.run(['diskutil', 'mount', '-mountPoint', str(mount), vol_dev], check=True)
+
+            if not (mount / 'mobile').is_dir():
+                sys.exit(f'The Data seed has no /mobile at {mount}; wrong base image?')
+
+            merge_pref(mount, 'com.apple.migration', {
                 'LastSystemVersion': BUILD,
                 'DMUserDataDisposition': {'SyntheticDidUpgrade': False, 'buildVersion': BUILD}})
-            merge_pref(actual_mount, 'com.apple.springboard', {
+            merge_pref(mount, 'com.apple.springboard', {
                 'BKNoWatchdogs': True,
                 'FBLaunchWatchdogExceptions': {'com.apple.purplebuddy': 100.0},
                 'MCForceShowCloudConfigurationUI': False,
                 **({'SBDisableAutoDim': True, 'SBDontDimOrLockOnAC': True, 'SBDisableIdleSleep': True} if no_auto_dim else {})})
-            merge_pref(actual_mount, 'com.apple.purplebuddy', {
+            merge_pref(mount, 'com.apple.purplebuddy', {
                 'SetupDone': True, 'SetupFinishedAllSteps': True, 'SetupVersion': 11, 'daemonizeNeedsToRun': False})
-            merge_pref(actual_mount, 'com.apple.purplebuddy.notbackedup', {
+            merge_pref(mount, 'com.apple.purplebuddy.notbackedup', {
                 k: False for k in ('ShouldRunDiagnosticsMiniBuddy', 'ShouldRunHSA2MiniBuddy', 'ShouldRunKeychainSyncMiniBuddy',
                                    'ShouldRunMesaMiniBuddy', 'ShouldRunPaymentMiniBuddy', 'ShouldRunStandardMiniBuddy',
                                    'SilentICDPUpgrade')})
-            merge_pref(actual_mount, 'com.apple.managedconfiguration.notbackedup', {
+            merge_pref(mount, 'com.apple.managedconfiguration.notbackedup', {
                 'LockdownActivationIndicatesCloudConfigurationAvailable': False})
             for sub in ('Bundle', 'Data/System', 'Shared/SystemGroup', 'Temp'):
-                d = actual_mount / 'containers' / sub
+                d = mount / 'containers' / sub
                 if not d.is_dir():
                     d.mkdir(parents=True)
                     os.chmod(d, 0o755)
-                    print('mkdir', d.relative_to(actual_mount))
+                    print('mkdir', d.relative_to(mount))
         finally:
+            subprocess.run(['diskutil', 'unmount', str(mount)], check=False)
             subprocess.run(['hdiutil', 'detach', device, '-force'], check=False)
             for ent in attached.get('system-entities', []):
                 dev = ent.get('dev-entry')
