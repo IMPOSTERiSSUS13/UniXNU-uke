@@ -107,6 +107,12 @@ native_legacy_surface_rejected (uint64_t width, uint64_t height, uint32_t format
   (void)c;
 }
 
+__attribute__((weak)) bool
+native_gpu_idle (void)
+{
+  return true;
+}
+
 /* QEMU-only companions of the CPU display probe. The uke CPU baseline has no
  * shared window, virtio input or QEMU Metal backend, so these no-ops resolve
  * the QEMU LegacyDisplayProbe's optional late probes. */
