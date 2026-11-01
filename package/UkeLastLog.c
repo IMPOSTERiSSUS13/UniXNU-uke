@@ -28,6 +28,7 @@ extern int desiredvnodes;
 extern uint64_t sane_size;
 extern void uke_crash_log_start(void);
 extern void pe_print_last_panic_again(void);
+extern void (*uke_panic_flush_hook)(const char *t);
 
 #define UKE_LAST_LOG_INTERVAL_MS 500
 
@@ -454,6 +455,7 @@ uke_last_log_writer(void *arg, wait_result_t result)
 static void
 uke_last_log_start(void)
 {
+	uke_panic_flush_hook = uke_panic_flush;
 	uint32_t enabled = 0;
 	thread_t thread;
 

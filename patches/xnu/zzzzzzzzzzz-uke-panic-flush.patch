@@ -2,17 +2,16 @@ diff --git a/osfmk/kern/debug.c b/osfmk/kern/debug.c
 index e9daeed..b5c7e6d 100644
 --- a/osfmk/kern/debug.c
 +++ b/osfmk/kern/debug.c
-@@ -1126,6 +1126,9 @@ panic_with_thread_context(unsigned int reason, void *ctx, uint64_t debugger_opti
+@@ -1126,6 +1126,8 @@ panic_with_thread_context(unsigned int reason, void *ctx, uint64_t debugger_opti
  }
  #endif /* defined (__x86_64__) */
  
-+void uke_panic_flush(const char *t);
-+__attribute__((weak)) void uke_panic_flush(const char *t) { (void)t; }
++void (*uke_panic_flush_hook)(const char *t) = 0;
 +
  #pragma clang diagnostic push
  #pragma clang diagnostic ignored "-Wmissing-noreturn"
  void
-@@ -1164,6 +1167,17 @@ panic_trap_to_debugger(const char *panic_format_str, va_list *panic_args, unsign
+@@ -1164,6 +1166,19 @@ panic_trap_to_debugger(const char *panic_format_str, va_list *panic_args, unsign
  
  	/* Turn off I/O tracing once we've panicked */
  	iotrace_disable();
@@ -24,7 +23,9 @@ index e9daeed..b5c7e6d 100644
 +		va_copy(uke_copy, *panic_args);
 +		vsnprintf(uke_panic_text, sizeof uke_panic_text, panic_format_str, uke_copy);
 +		va_end(uke_copy);
-+		uke_panic_flush(uke_panic_text);
++		if (uke_panic_flush_hook) {
++			uke_panic_flush_hook(uke_panic_text);
++		}
 +	}
 +
  
