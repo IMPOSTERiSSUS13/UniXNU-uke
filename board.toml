@@ -81,9 +81,6 @@ archives = [
   "component:ShengHidInput",
   "component:AppleKeyStoreState",
   "build-native-legacy-display.py",
-  # The addon blob packs the owner-built Metal plugin bundle; the script builds
-  # it (and the owner trust module that admits it) when it is not on disk yet.
-  "build-gpu-addon-blob.py",
   "build-boot-log.py",
 ]
 

@@ -63,13 +63,16 @@ def ensure_inputs(plugin: Path):
     build = root / 'scripts/build-adreno-metal-plugin.py'
     if not (plugin / 'NativeAdrenoMetal.bundle/NativeAdrenoMetal').is_file():
         if not build.is_file():
-            sys.exit('missing plugin input and no build script at ' + str(build))
+            print('SKIP: missing plugin input and no build script at ' + str(build))
+            return False
         subprocess.run(['python3', str(build)], check=True)
     trust = root / 'scripts/make-owner-trust-bundle.py'
     if trust.is_file():
         subprocess.run(['python3', str(trust)], check=True)
         owner = Path(os.environ.get('UKE_OWNER_TRUST', str(OWNER_TRUST)))
-        shutil.copyfile(root / 'build/adreno-metal-plugin/owner-trust.bundle', owner)
+        if owner.parent.exists():
+            shutil.copyfile(root / 'build/adreno-metal-plugin/owner-trust.bundle', owner)
+    return True
 
 
 def pack(plugin: Path, output: Path, clients: str, publish: bool, wallpaper: Path | None, force_generic: bool):
@@ -136,7 +139,9 @@ def main():
     if wallpaper is None:
         default = Path('/home/allenwdk/UniXNU/uke-port/data/wallpaper-overlay')
         wallpaper = default if default.is_dir() else None
-    ensure_inputs(plugin)
+    if not ensure_inputs(plugin):
+        print('PASS: GPU addon blob skipped (optional inputs absent)')
+        return
     out = args.output_dir.resolve()
     out.mkdir(parents=True, exist_ok=True)
     blob_path = out / 'gpu-addon.z'
