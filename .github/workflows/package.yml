@@ -44,11 +44,19 @@ jobs:
           submodules: recursive
       - name: tools
         run: |
-          brew install dtc llvm lld cmake mtools glslang blacktop/tap/ipsw
+          brew install dtc llvm lld cmake mtools glslang bison flex blacktop/tap/ipsw
+          echo "/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
+          echo "/opt/homebrew/opt/flex/bin" >> $GITHUB_PATH
+          echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+          echo "/opt/homebrew/opt/lld/bin" >> $GITHUB_PATH
+          export PATH="/opt/homebrew/opt/bison/bin:/opt/homebrew/opt/flex/bin:$PATH"
+          mkdir -p UniXNU/.cache/mesa-tools/bin
+          ln -sf /opt/homebrew/opt/bison/bin/bison UniXNU/.cache/mesa-tools/bin/bison
+          ln -sf /opt/homebrew/opt/flex/bin/flex UniXNU/.cache/mesa-tools/bin/flex
           # Fail fast, naming the tool, before build.
           ok=1
           for t in clang xcodebuild make git ninja cmake dtc fdtget fdtput aea compression_tool \
-                   mformat mcopy ipsw glslangValidator; do
+                   mformat mcopy ipsw glslangValidator bison flex; do
             command -v "$t" >/dev/null || { echo "missing tool: $t"; ok=0; }
           done
           for t in lld-link llvm-lib llvm-rc llvm-nm llvm-objcopy; do
