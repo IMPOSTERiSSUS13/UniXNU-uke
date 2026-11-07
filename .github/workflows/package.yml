@@ -63,6 +63,19 @@ jobs:
             echo 'Set the repository secret UNIXNU_UNIQUE_CHIP_ID: the platform seed of the device, 8 hex digits.' >&2
             exit 1
           fi
+      - name: fix mesa patch
+        run: |
+          python3 -c "
+          from pathlib import Path
+          p = Path('UniXNU/patches/mesa/turnip-frame-diagnostics.patch')
+          if p.is_file():
+              content = p.read_text()
+              bad = 'diff --git a/src/freedreno/vulkan/tu_frame_diagnostic.h b/src/freedreno/vulkan/tu_frame_diagnostic.h\n--- /dev/null'
+              good = 'diff --git a/src/freedreno/vulkan/tu_frame_diagnostic.h b/src/freedreno/vulkan/tu_frame_diagnostic.h\nnew file mode 100644\nindex 0000000..0000000\n--- /dev/null'
+              if bad in content:
+                  p.write_text(content.replace(bad, good))
+                  print('Fixed turnip-frame-diagnostics.patch git header')
+          "
       - name: package
         working-directory: device
         env:
