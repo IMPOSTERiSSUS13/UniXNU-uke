@@ -7,17 +7,8 @@ name: validate
 # the kernel build's order.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'board.toml'
-      - 'feeds.toml'
-      - 'unixnu.lock'
-      - 'configs/**'
-      - 'drivers/**'
-      - 'kits/**'
-      - 'package/**'
-      - 'patches/**'
+  workflow_dispatch:
+  pull_request:
       - 'scripts/**'
       - 'docs/MACOS-BUILD.md'
       - '.github/workflows/**'

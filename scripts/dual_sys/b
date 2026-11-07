@@ -1,0 +1,14 @@
+#!/sbin/sh
+set -e
+echo "[UniXNU] Switching to Slot B (iPadOS 27 One-Shot Mode)..."
+/system/bin/bootctl set-active-boot-slot 1
+
+# Enforce Retry Count = 1, Successful = 0, Unbootable = 0 on boot_b (sde39)
+SGDISK=/system/bin/sgdisk
+[ -x /sbin/sgdisk ] && SGDISK=/sbin/sgdisk
+
+echo "[UniXNU] Setting GPT attributes on /dev/block/sde partition 39..."
+$SGDISK --attributes=39:set:50:51 --attributes=39:clear:52:53:54:55 /dev/block/sde
+sync
+echo "[UniXNU] Slot B armed for strict 1-shot boot. Rebooting..."
+reboot

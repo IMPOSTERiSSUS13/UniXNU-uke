@@ -16,7 +16,7 @@ def align(value, page):
 
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('--base', type=Path, required=True, help='vendor_boot v4 image to take the header/DTB/table from')
+parser.add_argument('--base', '--input', dest='base', type=Path, required=True, help='vendor_boot v4 image to take the header/DTB/table from')
 parser.add_argument('--payload', type=Path, required=True, help='vendor ramdisk (the UniXNU payload FAT image)')
 parser.add_argument('--output', type=Path, required=True)
 args = parser.parse_args()
