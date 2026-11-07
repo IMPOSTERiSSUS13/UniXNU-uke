@@ -110,7 +110,10 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           EXTRA_ARGS=""
-          if [ "${{ inputs.init_data }}" = "true" ]; then
+          if [ -f "runtime/data.dbr" ]; then
+            echo "Using preserved Data seed from runtime/data.dbr"
+            EXTRA_ARGS="--data-ramdisk $(pwd)/runtime/data.dbr"
+          elif [ "${{ inputs.init_data }}" = "true" ]; then
             EXTRA_ARGS="--init-data"
           fi
           scripts/package.sh --os "${{ inputs.os }}" --uefi ../uefi-uke $EXTRA_ARGS

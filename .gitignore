@@ -27,6 +27,7 @@ __pycache__/
 *.im4p
 *.img
 *.dbr
+!runtime/**/*.dbr
 *.macho
 *.o
 *.a
