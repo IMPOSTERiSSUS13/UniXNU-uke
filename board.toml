@@ -9,6 +9,13 @@ os_profile = "ipados-27.0.1-24A446"
 description = "Xiaomi Pad 7"
 kit = "uke"                      # the package/ of this repository appears as kits/uke in the build tree
 
+[package]
+unixnu = "../UniXNU"
+
+[package.defconfig]
+"ipados-27.0.1-24A446" = "uke_ipados27_defconfig"
+"27" = "uke_ipados27_defconfig"
+
 # iPadOS 27 GPU integration: the shared platform, kernel and
 # keystore pieces only. Storage, display, input and GPU join as their iPadOS 27
 # archives are selected (the resolver requires an archive entry for every selected
@@ -28,8 +35,8 @@ include = [
 # The raw image for the userdata partition: the OS and SystemOS disk images of the IPSW behind a manifest.
 # first_lba and last_lba are the GPT entry "userdata" of LUN 0, read from the tablet.
 [userdata]
-first_lba = 0x2d3000
-last_lba = 0x3b147fa
+first_lba = 0x1549800
+last_lba = 0x1d496ff
 lba_bytes = 4096
 # ShengUfs requires distinct OS and SystemOS windows; both are present in 24A446.
 # Raw hash tables only: --object OS.vroot=<OS>/manifest.bin:544 and SystemOS.vroot=<SystemOS>/manifest.bin:544.
