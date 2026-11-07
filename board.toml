@@ -290,6 +290,15 @@ kernel_args = [
 ]
 # The existing 24A446 SW surface fixups remain available to software clients.
 
+[payload.runtime]
+tool = "scripts/build-boot-runtime.py"
+target = "ios27"
+build = "24A446"
+data_gib = 16
+skip_setup = true
+trust_components = ["StaticTrustCache", "Cryptex1,SystemTrustCache", "Cryptex1,AppTrustCache"]
+wallpapers = ["ipados27", "ipados27-floating"]
+
 [payload.adt]
 tool = "scripts/make-uke-adt.py"
 chip_id = "207"
