@@ -87,6 +87,15 @@ jobs:
                   p.write_text(content.replace(bad, good))
                   print('Fixed turnip-frame-diagnostics.patch git header')
           "
+      - name: install root policy headers
+        run: |
+          mkdir -p UniXNU/scripts/policies/ipados-27.0.1-24A446/OS
+          mkdir -p UniXNU/scripts/policies/ipados-27.0.1-24A446/SystemOS
+          cp -r device/policies/24A446/OS/* UniXNU/scripts/policies/ipados-27.0.1-24A446/OS/
+          cp -r device/policies/24A446/SystemOS/* UniXNU/scripts/policies/ipados-27.0.1-24A446/SystemOS/
+          test -f UniXNU/scripts/policies/ipados-27.0.1-24A446/OS/trusted-key.bin
+          test -f UniXNU/scripts/policies/ipados-27.0.1-24A446/SystemOS/trusted-key.bin
+          echo "Root policy headers installed successfully into UniXNU"
       - name: package
         working-directory: device
         env:
