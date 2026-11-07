@@ -34,7 +34,7 @@ jobs:
           submodules: recursive
       - uses: actions/checkout@v4
         with:
-          repository: UniXNU/UniXNU
+          repository: Allenwdk/UniXNU
           path: UniXNU
           submodules: recursive
       - uses: actions/checkout@v4
