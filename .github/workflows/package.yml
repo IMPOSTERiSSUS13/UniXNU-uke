@@ -44,7 +44,7 @@ jobs:
           submodules: recursive
       - name: tools
         run: |
-          brew install dtc llvm lld cmake mtools glslang bison flex blacktop/tap/ipsw
+          brew install dtc llvm lld cmake mtools glslang bison flex shaderc spirv-tools blacktop/tap/ipsw
           echo "/opt/homebrew/opt/bison/bin" >> $GITHUB_PATH
           echo "/opt/homebrew/opt/flex/bin" >> $GITHUB_PATH
           echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
@@ -53,13 +53,16 @@ jobs:
           mkdir -p UniXNU/.cache/mesa-tools/bin
           ln -sf /opt/homebrew/opt/bison/bin/bison UniXNU/.cache/mesa-tools/bin/bison
           ln -sf /opt/homebrew/opt/flex/bin/flex UniXNU/.cache/mesa-tools/bin/flex
+          rustup component add rust-src || true
+          rustup target add aarch64-apple-ios || true
+          rustup toolchain install 1.98.0 --component rust-src 2>/dev/null || rustup toolchain link 1.98.0 $(rustc --print sysroot) || true
           # Fail fast, naming the tool, before build.
           ok=1
           for t in clang xcodebuild make git ninja cmake dtc fdtget fdtput aea compression_tool \
-                   mformat mcopy ipsw glslangValidator bison flex; do
+                   mformat mcopy ipsw glslangValidator glslc spirv-val bison flex cargo rustc; do
             command -v "$t" >/dev/null || { echo "missing tool: $t"; ok=0; }
           done
-          for t in lld-link llvm-lib llvm-rc llvm-nm llvm-objcopy; do
+          for t in lld-link llvm-lib llvm-rc llvm-nm llvm-objcopy llvm-as; do
             [ -f "/opt/homebrew/opt/llvm/bin/$t" ] || [ -f "/opt/homebrew/opt/lld/bin/$t" ] || { echo "missing tool: $t"; ok=0; }
           done
           [ "$ok" = 1 ]
