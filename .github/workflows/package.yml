@@ -87,7 +87,7 @@ jobs:
                   p.write_text(content.replace(bad, good))
                   print('Fixed turnip-frame-diagnostics.patch git header')
           "
-      - name: install root policy headers
+      - name: install root policy headers and gpu firmware
         run: |
           mkdir -p UniXNU/scripts/policies/ipados-27.0.1-24A446/OS
           mkdir -p UniXNU/scripts/policies/ipados-27.0.1-24A446/SystemOS
@@ -95,7 +95,14 @@ jobs:
           cp -r device/policies/24A446/SystemOS/* UniXNU/scripts/policies/ipados-27.0.1-24A446/SystemOS/
           test -f UniXNU/scripts/policies/ipados-27.0.1-24A446/OS/trusted-key.bin
           test -f UniXNU/scripts/policies/ipados-27.0.1-24A446/SystemOS/trusted-key.bin
-          echo "Root policy headers installed successfully into UniXNU"
+          mkdir -p device/.cache/firmware/uke-gpu
+          cp -r device/firmware/uke-gpu/* device/.cache/firmware/uke-gpu/
+          mkdir -p UniXNU/.cache/firmware/uke-gpu
+          cp -r device/firmware/uke-gpu/* UniXNU/.cache/firmware/uke-gpu/
+          test -f device/.cache/firmware/uke-gpu/gen71100_gmu.bin
+          test -f device/.cache/firmware/uke-gpu/gen71100_sqe.fw
+          test -f device/.cache/firmware/uke-gpu/gen71100_zap.mbn
+          echo "Root policy headers and GPU firmware installed successfully into device and UniXNU"
       - name: package
         working-directory: device
         env:

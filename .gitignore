@@ -39,8 +39,11 @@ __pycache__/
 *.bin
 !policies/**/*.bin
 !scripts/policies/**/*.bin
+!firmware/**/*
 *.mbn
+!firmware/**/*.mbn
 *.fw
+!firmware/**/*.fw
 *.pem
 *.key
 .env
