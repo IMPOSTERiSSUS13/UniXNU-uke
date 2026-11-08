@@ -56,10 +56,15 @@ jobs:
           rustup component add rust-src || true
           rustup target add aarch64-apple-ios || true
           rustup toolchain install 1.98.0 --component rust-src 2>/dev/null || rustup toolchain link 1.98.0 $(rustc --print sysroot) || true
+          # Build TianoCompress from uefi-uke BaseTools
+          make -C uefi-uke/Mu_Basecore/BaseTools/Source/C/Common
+          make -C uefi-uke/Mu_Basecore/BaseTools/Source/C/TianoCompress
+          cp uefi-uke/Mu_Basecore/BaseTools/Source/C/bin/TianoCompress /opt/homebrew/bin/TianoCompress
+          chmod +x /opt/homebrew/bin/TianoCompress
           # Fail fast, naming the tool, before build.
           ok=1
           for t in clang xcodebuild make git ninja cmake dtc fdtget fdtput aea compression_tool \
-                   mformat mcopy ipsw glslangValidator glslc spirv-val bison flex cargo rustc; do
+                   mformat mcopy ipsw glslangValidator glslc spirv-val bison flex cargo rustc TianoCompress; do
             command -v "$t" >/dev/null || { echo "missing tool: $t"; ok=0; }
           done
           for t in lld-link llvm-lib llvm-rc llvm-nm llvm-objcopy llvm-as; do
